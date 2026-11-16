@@ -47,7 +47,7 @@ export function SugestaoInstalar() {
       className="fixed inset-x-3 bottom-20 z-40 flex flex-col gap-3 rounded-xl border-2 border-primary bg-background p-4 shadow-lg md:hidden print:hidden"
     >
       <p className="text-lg font-semibold">Instale o aplicativo no celular para usar mesmo sem internet.</p>
-      <div className="grid grid-cols-2 gap-3">
+      <div className="flex flex-col gap-3">
         <Button asChild size="lg" onClick={dispensar}>
           <Link href="/tecnico/instalar">
             <Download aria-hidden />

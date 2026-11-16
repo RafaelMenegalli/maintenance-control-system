@@ -7,14 +7,6 @@ const nextConfig: NextConfig = {
   // continuam funcionando como um servidor Node comum. Mantenha este arquivo como objeto
   // (não exporte uma função), senão a Hostinger perde a configuração. (`withSerwist` devolve
   // um objeto.)
-  turbopack: {
-    rules: {
-      "*.css": {
-        loaders: ["@tailwindcss/turbopack"],
-        as: "*.css",
-      },
-    },
-  },
 };
 
 // Service worker (PWA/offline): ver app/sw.ts e app/serwist/[path]/route.ts.
