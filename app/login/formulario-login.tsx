@@ -38,7 +38,7 @@ function mensagemDeErro(erro: { code?: string; status?: number; message?: string
   return "Não foi possível entrar agora. Tente de novo em instantes.";
 }
 
-export function FormularioLogin() {
+export function FormularioLogin({ voltar }: { voltar?: string }) {
   const router = useRouter();
   const [mostrarSenha, setMostrarSenha] = useState(false);
   const [erroGeral, setErroGeral] = useState<string | null>(null);
@@ -60,8 +60,8 @@ export function FormularioLogin() {
         setErroGeral(mensagemDeErro(error));
         return;
       }
-      // A raiz decide para onde ir: técnico → /tecnico, empresa → /portal.
-      router.replace("/");
+      // Sem destino pedido, a raiz decide: técnico → /tecnico, empresa → /portal.
+      router.replace(voltar ?? "/");
       router.refresh();
     } catch {
       setErroGeral(mensagemDeErro({ status: 0 }));

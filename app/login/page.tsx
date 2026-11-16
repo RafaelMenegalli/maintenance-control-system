@@ -1,15 +1,18 @@
 import type { Metadata } from "next";
 import { Wrench } from "lucide-react";
 import { redirect } from "next/navigation";
+import { destinoSeguro } from "@/lib/auth/destino";
 import { getSessao, rotaInicial } from "@/lib/auth/permissoes";
 import { FormularioLogin } from "./formulario-login";
 
 export const metadata: Metadata = { title: "Entrar" };
 
-export default async function PaginaLogin() {
+export default async function PaginaLogin({ searchParams }: { searchParams: Promise<{ voltar?: string }> }) {
+  const voltar = destinoSeguro((await searchParams).voltar);
+
   // Quem já está logado não precisa ver o login de novo.
   const sessao = await getSessao();
-  if (sessao) redirect(rotaInicial(sessao.user.papel));
+  if (sessao) redirect(voltar ?? rotaInicial(sessao.user.papel));
 
   return (
     <main className="flex min-h-svh flex-col items-center justify-center bg-muted/40 px-4 py-10">
@@ -21,7 +24,7 @@ export default async function PaginaLogin() {
           <h1 className="text-2xl font-bold">Controle de Manutenções</h1>
           <p className="text-muted-foreground">Entre com o seu e-mail e a sua senha.</p>
         </div>
-        <FormularioLogin />
+        <FormularioLogin voltar={voltar ?? undefined} />
       </div>
     </main>
   );

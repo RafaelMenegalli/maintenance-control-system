@@ -12,6 +12,8 @@ import { NextResponse, type NextRequest } from "next/server";
 export function proxy(request: NextRequest) {
   if (!getSessionCookie(request)) {
     const login = new URL("/login", request.url);
+    // Depois de entrar, a pessoa volta para onde queria ir.
+    login.searchParams.set("voltar", request.nextUrl.pathname + request.nextUrl.search);
     return NextResponse.redirect(login);
   }
   return NextResponse.next();

@@ -68,3 +68,33 @@ export function textoVencimento(proximaData: string | Date, hoje: Date = new Dat
 export function formatarDias(dias: number): string {
   return plural(dias, "dia", "dias");
 }
+
+/** Só os dígitos de um texto. */
+export function somenteDigitos(texto: string): string {
+  return texto.replace(/\D/g, "");
+}
+
+/** Aplica a máscara de CNPJ enquanto a pessoa digita: 12.345.678/0001-90 */
+export function mascararCnpj(texto: string): string {
+  const d = somenteDigitos(texto).slice(0, 14);
+  return d
+    .replace(/^(\d{2})(\d)/, "$1.$2")
+    .replace(/^(\d{2})\.(\d{3})(\d)/, "$1.$2.$3")
+    .replace(/\.(\d{3})(\d)/, ".$1/$2")
+    .replace(/(\d{4})(\d)/, "$1-$2");
+}
+
+/** Confere os dígitos verificadores do CNPJ. */
+export function cnpjValido(texto: string): boolean {
+  const d = somenteDigitos(texto);
+  if (d.length !== 14 || /^(\d)\1+$/.test(d)) return false;
+  const digito = (base: string) => {
+    const pesos = base.length === 12 ? [5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2] : [6, 5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2];
+    const soma = [...base].reduce((acc, n, i) => acc + Number(n) * pesos[i], 0);
+    const resto = soma % 11;
+    return resto < 2 ? 0 : 11 - resto;
+  };
+  const d1 = digito(d.slice(0, 12));
+  const d2 = digito(d.slice(0, 12) + d1);
+  return d === d.slice(0, 12) + String(d1) + String(d2);
+}

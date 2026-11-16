@@ -31,7 +31,7 @@ export function BarraInferior() {
     <>
       <nav
         aria-label="Menu principal"
-        className="fixed inset-x-0 bottom-0 z-40 border-t-2 bg-background pb-[env(safe-area-inset-bottom)] md:hidden"
+        className="fixed inset-x-0 bottom-0 z-40 border-t-2 bg-background pb-[env(safe-area-inset-bottom)] md:hidden print:hidden"
       >
         <ul className="grid grid-cols-4">
           {ITENS_PRINCIPAIS.map(({ href, rotulo, icone: Icone }) => {

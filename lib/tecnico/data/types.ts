@@ -19,6 +19,14 @@ export type TipoEquipamentoDTO = {
   checklist: ItemChecklist[];
   periodicidadePadraoDias: number;
   ativo: boolean;
+  /** Quantos equipamentos usam este tipo (inclui arquivados). */
+  quantidadeEquipamentos: number;
+};
+
+/** Tipo com o uso de cada campo (para avisar antes de remover um campo que já tem valores). */
+export type TipoEquipamentoDetalhe = TipoEquipamentoDTO & {
+  /** key do campo → quantos equipamentos têm valor preenchido nele. */
+  usoCampos: Record<string, number>;
 };
 
 export type LocalDTO = {
@@ -26,6 +34,15 @@ export type LocalDTO = {
   nome: string;
   clienteId: string;
   clienteNome: string;
+  quantidadeEquipamentos: number;
+};
+
+export type ClienteDTO = {
+  id: string;
+  nome: string;
+  cnpj: string | null;
+  contato: string | null;
+  locais: LocalDTO[];
 };
 
 export type EquipamentoResumo = {

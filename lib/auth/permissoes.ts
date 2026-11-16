@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { cache } from "react";
 import { db } from "@/db";
 import { clientes, type PapelUsuario } from "@/db/schema";
+import { ErroApi } from "@/lib/api";
 import { auth } from "@/lib/auth";
 
 /**
@@ -105,9 +106,11 @@ export async function comAdminApi(
   }
   try {
     const resultado = await executar(sessao);
+    if (resultado instanceof Response) return resultado;
     if (resultado === null) return Response.json({ erro: "Não encontrado." }, { status: 404 });
     return Response.json(resultado);
   } catch (erro) {
+    if (erro instanceof ErroApi) return Response.json({ erro: erro.message }, { status: erro.status });
     console.error("Erro na API do técnico:", erro);
     return Response.json({ erro: "Erro interno. Tente de novo." }, { status: 500 });
   }

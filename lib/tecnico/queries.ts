@@ -1,10 +1,12 @@
-import { asc, desc, eq, inArray } from "drizzle-orm";
+import { asc, desc, eq, inArray, sql } from "drizzle-orm";
 import { db } from "@/db";
 import { clientes, equipamentos, fotos, locais, servicos, tiposEquipamento } from "@/db/schema";
 import type {
+  ClienteDTO,
   EquipamentoDetalhe,
   LocalDTO,
   ServicoDetalhe,
+  TipoEquipamentoDetalhe,
   TipoEquipamentoDTO,
 } from "@/lib/tecnico/data/types";
 
@@ -131,19 +133,44 @@ export async function listarServicosAdmin(equipamentoId: string): Promise<Servic
   }));
 }
 
+
+// SQL escrito à mão (e não com ${colunas}): numa consulta de uma tabela só o Drizzle omite o nome da
+// tabela nas colunas, e a subconsulta compararia `tipo_id` com o `id` do próprio equipamento.
+const qtdEquipamentosDoTipo = sql<number>`(select count(*)::int from equipamentos eq where eq.tipo_id = tipos_equipamento.id)`;
+const qtdEquipamentosDoLocal = sql<number>`(select count(*)::int from equipamentos eq where eq.local_id = locais.id)`;
+
+const colunasTipo = {
+  id: tiposEquipamento.id,
+  nome: tiposEquipamento.nome,
+  icone: tiposEquipamento.icone,
+  campos: tiposEquipamento.campos,
+  checklist: tiposEquipamento.checklist,
+  periodicidadePadraoDias: tiposEquipamento.periodicidadePadraoDias,
+  ativo: tiposEquipamento.ativo,
+  quantidadeEquipamentos: qtdEquipamentosDoTipo,
+};
+
 export async function listarTiposAdmin(): Promise<TipoEquipamentoDTO[]> {
-  return db
-    .select({
-      id: tiposEquipamento.id,
-      nome: tiposEquipamento.nome,
-      icone: tiposEquipamento.icone,
-      campos: tiposEquipamento.campos,
-      checklist: tiposEquipamento.checklist,
-      periodicidadePadraoDias: tiposEquipamento.periodicidadePadraoDias,
-      ativo: tiposEquipamento.ativo,
-    })
-    .from(tiposEquipamento)
-    .orderBy(asc(tiposEquipamento.nome));
+  return db.select(colunasTipo).from(tiposEquipamento).orderBy(asc(tiposEquipamento.nome));
+}
+
+export async function obterTipoAdmin(id: string): Promise<TipoEquipamentoDetalhe | null> {
+  const [tipo] = await db.select(colunasTipo).from(tiposEquipamento).where(eq(tiposEquipamento.id, id)).limit(1);
+  if (!tipo) return null;
+
+  // Quantos equipamentos têm valor preenchido em cada campo.
+  const linhas = await db
+    .select({ atributos: equipamentos.atributos })
+    .from(equipamentos)
+    .where(eq(equipamentos.tipoId, id));
+  const usoCampos: Record<string, number> = {};
+  for (const campo of tipo.campos) {
+    usoCampos[campo.key] = linhas.filter((l) => {
+      const v = l.atributos[campo.key];
+      return v !== undefined && v !== null && v !== "";
+    }).length;
+  }
+  return { ...tipo, usoCampos };
 }
 
 export async function listarLocaisAdmin(): Promise<LocalDTO[]> {
@@ -153,8 +180,21 @@ export async function listarLocaisAdmin(): Promise<LocalDTO[]> {
       nome: locais.nome,
       clienteId: locais.clienteId,
       clienteNome: clientes.nome,
+      quantidadeEquipamentos: qtdEquipamentosDoLocal,
     })
     .from(locais)
     .innerJoin(clientes, eq(clientes.id, locais.clienteId))
     .orderBy(asc(clientes.nome), asc(locais.nome));
+}
+
+export async function listarClientesAdmin(): Promise<ClienteDTO[]> {
+  const listaClientes = await db.select().from(clientes).orderBy(asc(clientes.nome));
+  const listaLocais = await listarLocaisAdmin();
+  return listaClientes.map((c) => ({
+    id: c.id,
+    nome: c.nome,
+    cnpj: c.cnpj,
+    contato: c.contato,
+    locais: listaLocais.filter((l) => l.clienteId === c.id),
+  }));
 }

@@ -24,7 +24,7 @@ export function SidebarTecnico({ nome, email }: { nome: string; email: string })
   const RegistrarIcone = ITEM_REGISTRAR_SERVICO.icone;
 
   return (
-    <Sidebar collapsible="none" className="hidden h-svh md:sticky md:top-0 md:flex">
+    <Sidebar collapsible="none" className="hidden h-svh md:sticky md:top-0 md:flex print:hidden!">
       <SidebarHeader className="gap-3 p-4">
         <div className="flex items-center gap-3">
           <span className="flex size-11 items-center justify-center rounded-xl bg-primary text-primary-foreground">

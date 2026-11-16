@@ -157,3 +157,17 @@
     outline-offset: 2px;
   }
 }
+
+/* Impressão (etiquetas QR): A4 com margem pequena, fundo branco. */
+@media print {
+  @page {
+    size: A4;
+    margin: 8mm;
+  }
+  html {
+    font-size: 16px;
+  }
+  body {
+    background: #fff;
+  }
+}
