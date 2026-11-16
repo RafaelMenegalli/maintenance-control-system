@@ -117,6 +117,11 @@ export const servicos = pgTable(
     criadoPor: uuid("criado_por").references((): typeof usuarios.id => usuarios.id),
     criadoEm: criadoEm(),
     sincronizadoEm: timestamp("sincronizado_em", { withTimezone: true }),
+    /** Última alteração (a sincronização incremental do técnico usa isto para saber o que mudou). */
+    atualizadoEm: timestamp("atualizado_em", { withTimezone: true })
+      .notNull()
+      .defaultNow()
+      .$onUpdate(() => new Date()),
   },
   (t) => [
     index("servicos_equipamento_id_data_idx").on(t.equipamentoId, t.data),

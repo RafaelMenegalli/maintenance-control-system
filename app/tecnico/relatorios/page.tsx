@@ -25,7 +25,7 @@ export default async function PaginaRelatorios() {
   };
 
   return (
-    <Tela titulo="Relatórios">
+    <Tela exigeInternet titulo="Relatórios">
       <div className="flex flex-col gap-4">
         <p className="text-lg text-muted-foreground">
           Escolha o período e gere o relatório em PDF para entregar à empresa.

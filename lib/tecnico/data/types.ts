@@ -79,6 +79,8 @@ export type FotoResumo = {
   momento: MomentoFoto;
   largura: number | null;
   altura: number | null;
+  /** Foto ainda só no celular (serviço aguardando envio): endereço local (blob:) em vez de /api/fotos. */
+  url?: string;
 };
 
 export type ServicoDetalhe = {
@@ -93,6 +95,8 @@ export type ServicoDetalhe = {
   criadoPorNome: string | null;
   criadoEm: string;
   fotos: FotoResumo[];
+  /** `true` enquanto o serviço está só no celular, na fila de envio (selo "Aguardando envio"). */
+  pendente?: boolean;
 };
 
 export type FiltrosEquipamentos = {

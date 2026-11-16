@@ -17,12 +17,16 @@ export const metadata: Metadata = {
   },
   description:
     "Registro e comprovação de manutenções de ar-condicionado, caixas d'água, portas corta-fogo e luzes de emergência.",
+  applicationName: "Controle de Manutenções",
+  // iPhone: ao adicionar à Tela de Início o app abre em tela cheia, com este ícone.
+  appleWebApp: { capable: true, title: "Manutenções", statusBarStyle: "default" },
+  icons: { apple: "/icons/apple-touch-icon.png" },
 };
 
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
-  themeColor: "#ffffff",
+  themeColor: "#004a9c",
 };
 
 export default function RootLayout({

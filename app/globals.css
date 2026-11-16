@@ -6,7 +6,7 @@
  * Design system acessível (docs/ESCOPO.md, seção 9).
  * - Tema claro apenas (sem variante dark).
  * - Fonte base: 17 px no celular e 16 px no computador (a escala toda é em rem).
- * - Nada abaixo de 14 px: text-xs = 0,875rem.
+ * - Nada abaixo de 16 px: text-xs = 16px (fixo, nem a menor fonte do app é menor que isso).
  * - Alto contraste e foco visível em todos os elementos interativos.
  */
 
@@ -15,9 +15,9 @@
   --font-mono: ui-monospace, SFMono-Regular, Menlo, monospace;
   --font-heading: var(--font-sans);
 
-  /* Escala tipográfica: nada abaixo de 14 px; texto base maior. */
-  --text-xs: 0.875rem;
-  --text-xs--line-height: 1.25rem;
+  /* Escala tipográfica: nada abaixo de 16 px; texto base maior. */
+  --text-xs: 16px;
+  --text-xs--line-height: 1.5rem;
   --text-sm: 1rem;
   --text-sm--line-height: 1.5rem;
   --text-base: 1.0625rem;

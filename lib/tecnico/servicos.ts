@@ -108,8 +108,14 @@ export async function excluirServico(id: string) {
   const linhas = await db.select({ id: fotos.id }).from(fotos).where(eq(fotos.servicoId, id));
   for (const f of linhas) await removerArquivosDaFoto(id, f.id);
   // `fotos` tem ON DELETE CASCADE.
-  const removidos = await db.delete(servicos).where(eq(servicos.id, id)).returning({ id: servicos.id });
+  const removidos = await db
+    .delete(servicos)
+    .where(eq(servicos.id, id))
+    .returning({ id: servicos.id, equipamentoId: servicos.equipamentoId });
   if (removidos.length === 0) throw new ErroApi("Serviço não encontrado.", 404);
+  // Serviço apagado não deixa rastro para a sincronização incremental: marcamos o equipamento como
+  // alterado, e o celular troca a lista de serviços dele inteira no próximo pull.
+  await db.update(equipamentos).set({ atualizadoEm: new Date() }).where(eq(equipamentos.id, removidos[0].equipamentoId));
   return { ok: true };
 }
 

@@ -17,7 +17,7 @@ export default async function PaginaAcessos() {
   ]);
 
   return (
-    <Tela titulo="Acessos">
+    <Tela exigeInternet titulo="Acessos">
       <GerenciarAcessos acessos={acessos} clientes={listaClientes} meuId={sessao.user.id} />
     </Tela>
   );

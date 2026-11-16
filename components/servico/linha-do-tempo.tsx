@@ -10,6 +10,7 @@ import { ListaServicos } from "@/components/servico/lista-servicos";
 import { Button } from "@/components/ui/button";
 import { formatarData } from "@/lib/format";
 import { repositorio, useServicos, type ServicoDetalhe } from "@/lib/tecnico/data";
+import { SERVICOS_POR_EQUIPAMENTO } from "@/lib/tecnico/sync/tipos";
 
 /**
  * Linha do tempo do técnico: lê pela camada `lib/tecnico/data` e oferece editar/excluir.
@@ -43,6 +44,12 @@ export function LinhaDoTempo({ equipamentoId }: { equipamentoId: string }) {
           </div>
         }
       />
+
+      {servicos.filter((s) => !s.pendente).length >= SERVICOS_POR_EQUIPAMENTO && (
+        <p className="text-muted-foreground">
+          Mostrando os {SERVICOS_POR_EQUIPAMENTO} serviços mais recentes. O histórico completo está no relatório em PDF.
+        </p>
+      )}
 
       {excluindo && (
         <DialogoConfirmacao

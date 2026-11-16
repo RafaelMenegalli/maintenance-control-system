@@ -6,7 +6,7 @@ export const metadata: Metadata = { title: "Novo equipamento" };
 
 export default function PaginaNovoEquipamento() {
   return (
-    <Tela titulo="Novo equipamento" voltarHref="/tecnico/equipamentos">
+    <Tela exigeInternet titulo="Novo equipamento" voltarHref="/tecnico/equipamentos">
       <FormularioEquipamento />
     </Tela>
   );

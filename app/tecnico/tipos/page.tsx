@@ -6,7 +6,7 @@ export const metadata: Metadata = { title: "Tipos de equipamento" };
 
 export default function PaginaTipos() {
   return (
-    <Tela titulo="Tipos de equipamento">
+    <Tela exigeInternet titulo="Tipos de equipamento">
       <ListaTipos />
     </Tela>
   );

@@ -341,7 +341,10 @@ function FormularioInterno({ equipamento, servico }: { equipamento: EquipamentoD
         await repositorio.salvarServico({ id: servicoId, equipamentoId: equipamento.id, ...dadosComuns }, prontas, setProgresso);
       }
       setSalvo(true);
-      toast.success(editando ? "Serviço atualizado" : "Serviço salvo");
+      if (editando) toast.success("Serviço atualizado");
+      else if (navigator.onLine) toast.success("Serviço salvo. Enviando…");
+      // Sem internet o serviço fica guardado no celular e sobe sozinho quando a conexão voltar.
+      else toast.success("Sem internet — seu registro está salvo no celular");
       router.push(voltarParaEquipamento);
       // Continua "enviando" até a navegação terminar: bloqueia novos toques.
     } catch (e) {

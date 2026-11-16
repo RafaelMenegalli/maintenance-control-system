@@ -6,7 +6,7 @@ export const metadata: Metadata = { title: "Clientes e locais" };
 
 export default function PaginaClientes() {
   return (
-    <Tela titulo="Clientes e locais">
+    <Tela exigeInternet titulo="Clientes e locais">
       <ListaClientes />
     </Tela>
   );

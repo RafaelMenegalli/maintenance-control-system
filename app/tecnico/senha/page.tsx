@@ -8,7 +8,7 @@ export const metadata: Metadata = { title: "Alterar minha senha" };
 export default async function PaginaAlterarSenha() {
   await exigirAdmin();
   return (
-    <Tela titulo="Alterar minha senha">
+    <Tela exigeInternet titulo="Alterar minha senha">
       <div className="mx-auto flex max-w-md flex-col gap-4">
         <p className="text-lg text-muted-foreground">Digite a senha de agora e escolha uma nova, com pelo menos 8 caracteres.</p>
         <FormularioSenha />

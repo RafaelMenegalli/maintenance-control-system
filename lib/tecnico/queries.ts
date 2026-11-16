@@ -20,7 +20,7 @@ import type {
  */
 
 // Último serviço de cada equipamento (data mais recente; empate → o criado por último).
-const ultimoServico = db
+export const ultimoServicoPorEquipamento = db
   .selectDistinctOn([servicos.equipamentoId], {
     equipamentoId: servicos.equipamentoId,
     data: servicos.data,
@@ -44,13 +44,13 @@ export function baseResumo() {
       clienteId: locais.clienteId,
       periodicidadeDias: equipamentos.periodicidadeDias,
       arquivadoEm: equipamentos.arquivadoEm,
-      ultimoServicoEm: ultimoServico.data,
-      proximaData: ultimoServico.proximaData,
+      ultimoServicoEm: ultimoServicoPorEquipamento.data,
+      proximaData: ultimoServicoPorEquipamento.proximaData,
     })
     .from(equipamentos)
     .innerJoin(locais, eq(locais.id, equipamentos.localId))
     .innerJoin(tiposEquipamento, eq(tiposEquipamento.id, equipamentos.tipoId))
-    .leftJoin(ultimoServico, eq(ultimoServico.equipamentoId, equipamentos.id));
+    .leftJoin(ultimoServicoPorEquipamento, eq(ultimoServicoPorEquipamento.equipamentoId, equipamentos.id));
 }
 
 type LinhaResumo = Awaited<ReturnType<typeof baseResumo>>[number];

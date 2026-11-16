@@ -7,7 +7,7 @@ export const metadata: Metadata = { title: "Editar tipo" };
 export default async function PaginaEditarTipo({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   return (
-    <Tela titulo="Editar tipo" voltarHref="/tecnico/tipos">
+    <Tela exigeInternet titulo="Editar tipo" voltarHref="/tecnico/tipos">
       <EditorTipo id={id} />
     </Tela>
   );

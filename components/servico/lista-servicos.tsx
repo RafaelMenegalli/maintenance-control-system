@@ -1,6 +1,6 @@
 "use client";
 
-import { CircleCheck, MoreVertical, Pencil, Trash2, TriangleAlert } from "lucide-react";
+import { CircleCheck, CloudUpload, MoreVertical, Pencil, Trash2, TriangleAlert } from "lucide-react";
 import Link from "next/link";
 import { useState, type ReactNode } from "react";
 import { BadgeTipoServico } from "@/components/servico/tipo-servico";
@@ -72,14 +72,20 @@ export function ListaServicos({
                     <p className="text-lg leading-tight font-bold">{formatarData(s.data)}</p>
                     <div className="flex flex-wrap items-center gap-2">
                       <BadgeTipoServico tipo={s.tipo} />
+                      {s.pendente && (
+                        <Badge variant="outline" className="border-2 border-vence-em-breve-border bg-vence-em-breve text-base font-semibold text-vence-em-breve-foreground">
+                          <CloudUpload className="size-4" aria-hidden />
+                          Aguardando envio
+                        </Badge>
+                      )}
                     </div>
                     <p className="text-muted-foreground">
                       {s.criadoPorNome ? `Registrado por ${s.criadoPorNome}` : "Registrado pelo técnico"}
                     </p>
                   </div>
 
-                  {/* Editar e excluir: só técnico, só no computador (exigem internet). */}
-                  {acoes && (
+                  {/* Editar e excluir: só técnico, só no computador (exigem internet) e só depois de enviado. */}
+                  {acoes && !s.pendente && (
                     <div className="hidden shrink-0 md:block">
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
@@ -138,7 +144,7 @@ export function ListaServicos({
                         >
                           {/* eslint-disable-next-line @next/next/no-img-element -- foto protegida servida pela API */}
                           <img
-                            src={`/api/fotos/${f.id}?tamanho=miniatura`}
+                            src={f.url ?? `/api/fotos/${f.id}?tamanho=miniatura`}
                             alt=""
                             loading="lazy"
                             className="size-full object-cover"

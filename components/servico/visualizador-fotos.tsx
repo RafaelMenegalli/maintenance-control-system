@@ -53,7 +53,7 @@ function Conteudo({ fotos, inicial, aoFechar }: { fotos: FotoResumo[]; inicial: 
       <div className="flex min-h-0 flex-1 items-center justify-center overflow-hidden rounded-lg bg-black">
         {/* eslint-disable-next-line @next/next/no-img-element -- foto protegida servida pela API */}
         <img
-          src={`/api/fotos/${foto.id}`}
+          src={foto.url ?? `/api/fotos/${foto.id}`}
           alt={`Foto ${foto.momento === "antes" ? "de antes" : "de depois"} do serviço`}
           className="max-h-full max-w-full object-contain"
         />

@@ -8,7 +8,7 @@ export const metadata: Metadata = { title: "Etiquetas QR" };
 
 export default function PaginaEtiquetas() {
   return (
-    <Tela titulo="Etiquetas QR">
+    <Tela exigeInternet titulo="Etiquetas QR">
       <Suspense fallback={<CarregandoLista />}>
         <SeletorEtiquetas />
       </Suspense>

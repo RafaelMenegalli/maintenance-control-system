@@ -1,7 +1,10 @@
 "use client";
 
-import { useCallback, useEffect, useEffectEvent, useMemo, useState, useSyncExternalStore } from "react";
+import { useLiveQuery } from "dexie-react-hooks";
+import { useCallback, useMemo, useState, useSyncExternalStore } from "react";
+import { assinarEstado, lerEstado } from "@/lib/tecnico/sync/estado";
 import { repositorio } from "./atual";
+import { SemDadosLocais } from "./dexie-repositorio";
 import { filtrarEquipamentos } from "./filtros";
 import { assinarMudancas, versaoAtual } from "./invalidacao";
 import type {
@@ -22,7 +25,7 @@ import type {
  * Hooks que as telas do técnico usam para ler dados. O formato do retorno é fixo:
  *   { dados, carregando, erro, recarregar }
  * Recarregam sozinhos depois de qualquer escrita (ver ./invalidacao).
- * Na etapa 5 estes hooks passam a usar `useLiveQuery` (Dexie) mantendo o mesmo retorno.
+ * Leem do Dexie com `useLiveQuery` (ver `useConsulta`); o formato do retorno é o mesmo de sempre.
  */
 export type Consulta<T> = {
   /** `undefined` enquanto carrega pela primeira vez. */
@@ -33,38 +36,40 @@ export type Consulta<T> = {
   recarregar: () => void;
 };
 
-type Resultado<T> = { chave: string; dados?: T; erro: string | null };
+type Resultado<T> = { chave: string; dados?: T; erro: string | null; semDados: boolean };
 
+/**
+ * Lê do banco local com `useLiveQuery` (Dexie): a tela se atualiza sozinha quando o Dexie muda
+ * (sincronização, serviço salvo na fila…). Mantém o formato antigo { dados, carregando, erro, recarregar }.
+ */
 function useConsulta<T>(carregar: () => Promise<T>, chave: string): Consulta<T> {
-  const [resultado, setResultado] = useState<Resultado<T> | null>(null);
   const [versaoManual, setVersaoManual] = useState(0);
   const versaoGlobal = useSyncExternalStore(assinarMudancas, versaoAtual, versaoAtual);
-  const chaveCompleta = `${chave}#${versaoManual}.${versaoGlobal}`;
-  // Sempre usa a função mais recente sem refazer a consulta a cada renderização.
-  const executar = useEffectEvent(carregar);
+  const estado = useSyncExternalStore(assinarEstado, lerEstado, lerEstado);
 
-  useEffect(() => {
-    let cancelado = false;
-    executar()
-      .then((dados) => {
-        if (!cancelado) setResultado({ chave: chaveCompleta, dados, erro: null });
-      })
-      .catch((e: unknown) => {
-        if (cancelado) return;
+  const resultado = useLiveQuery(
+    async (): Promise<Resultado<T>> => {
+      try {
+        return { chave, dados: await carregar(), erro: null, semDados: false };
+      } catch (e) {
+        if (e instanceof SemDadosLocais) return { chave, erro: null, semDados: true };
         const erro = e instanceof Error ? e.message : "Não foi possível carregar os dados.";
-        setResultado((anterior) => ({ chave: chaveCompleta, dados: anterior?.dados, erro }));
-      });
-    return () => {
-      cancelado = true;
-    };
-  }, [chaveCompleta]);
+        return { chave, erro, semDados: false };
+      }
+    },
+    [chave, versaoManual, versaoGlobal],
+  );
+
+  // O Dexie mantém o resultado anterior enquanto recarrega (sem piscar); só aceitamos o que é DESTA consulta.
+  const valido = resultado && resultado.chave === chave ? resultado : null;
 
   const recarregar = useCallback(() => setVersaoManual((v) => v + 1), []);
+  const semDados = valido?.semDados === true;
   return {
-    // Enquanto recarrega, mantém os dados anteriores na tela (sem piscar).
-    dados: resultado?.dados,
-    carregando: resultado?.chave !== chaveCompleta,
-    erro: resultado?.chave === chaveCompleta ? resultado.erro : null,
+    dados: valido?.dados,
+    carregando: !valido || (semDados && !estado.semInternet),
+    // Primeira vez, sem internet: não há o que mostrar até baixar os dados.
+    erro: semDados && estado.semInternet ? new SemDadosLocais().message : (valido?.erro ?? null),
     recarregar,
   };
 }

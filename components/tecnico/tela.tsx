@@ -3,12 +3,15 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { ExigeInternet } from "./exige-internet";
 import { IndicadorSincronizacao } from "./indicador-sincronizacao";
 
 type Props = {
   titulo: string;
   /** Quando informado, mostra o botão "Voltar" (ícone + texto) levando para esta rota. */
   voltarHref?: string;
+  /** Tela que só funciona com internet (cadastros, acessos, relatórios…): sem internet mostra um aviso no lugar do conteúdo. */
+  exigeInternet?: boolean;
   children: ReactNode;
 };
 
@@ -17,7 +20,7 @@ type Props = {
  * botão voltar (quando aplicável) e o indicador de sincronização, mais o conteúdo.
  * No celular, com botão Voltar, o título desce para uma segunda linha (nunca fica espremido).
  */
-export function Tela({ titulo, voltarHref, children }: Props) {
+export function Tela({ titulo, voltarHref, exigeInternet = false, children }: Props) {
   return (
     <>
       <header className="sticky top-0 z-30 border-b bg-background print:hidden">
@@ -44,7 +47,9 @@ export function Tela({ titulo, voltarHref, children }: Props) {
         </div>
       </header>
       {/* Espaço extra embaixo no celular para a barra inferior fixa não cobrir o conteúdo. */}
-      <main className="mx-auto w-full max-w-5xl flex-1 p-4 pb-28 md:pb-8 print:p-0">{children}</main>
+      <main className="mx-auto w-full max-w-5xl flex-1 p-4 pb-28 md:pb-8 print:p-0">
+        {exigeInternet ? <ExigeInternet>{children}</ExigeInternet> : children}
+      </main>
     </>
   );
 }

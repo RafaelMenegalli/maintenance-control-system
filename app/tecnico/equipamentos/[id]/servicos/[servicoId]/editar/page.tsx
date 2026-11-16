@@ -11,7 +11,7 @@ export default async function PaginaEditarServico({
 }) {
   const { id, servicoId } = await params;
   return (
-    <Tela titulo="Editar serviço" voltarHref={`/tecnico/equipamentos/${id}`}>
+    <Tela exigeInternet titulo="Editar serviço" voltarHref={`/tecnico/equipamentos/${id}`}>
       <FormularioServico equipamentoId={id} servicoId={servicoId} />
     </Tela>
   );
