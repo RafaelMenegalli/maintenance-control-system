@@ -1,19 +1,24 @@
 import type { Metadata } from "next";
-import { Home, KeyRound } from "lucide-react";
+import { asc } from "drizzle-orm";
 import { Tela } from "@/components/tecnico/tela";
-import { TelaVazia } from "@/components/tela-vazia";
+import { db } from "@/db";
+import { clientes } from "@/db/schema";
+import { listarAcessos } from "@/lib/auth/acessos";
+import { exigirAdmin } from "@/lib/auth/permissoes";
+import { GerenciarAcessos } from "./gerenciar-acessos";
 
 export const metadata: Metadata = { title: "Acessos" };
 
-export default function PaginaAcessos() {
+export default async function PaginaAcessos() {
+  const sessao = await exigirAdmin();
+  const [acessos, listaClientes] = await Promise.all([
+    listarAcessos(),
+    db.select({ id: clientes.id, nome: clientes.nome }).from(clientes).orderBy(asc(clientes.nome)),
+  ]);
+
   return (
     <Tela titulo="Acessos">
-      <TelaVazia
-        icone={KeyRound}
-        titulo="Acessos da empresa"
-        descricao="Aqui você vai criar o acesso da empresa cliente, redefinir a senha e desativar o acesso quando precisar. Esta tela será liberada nas próximas etapas."
-        acao={{ rotulo: "Voltar ao início", href: "/tecnico", icone: Home }}
-      />
+      <GerenciarAcessos acessos={acessos} clientes={listaClientes} meuId={sessao.user.id} />
     </Tela>
   );
 }

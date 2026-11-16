@@ -1,53 +1,22 @@
 "use client";
 
-import { ChevronRight, Plus, Search, SearchX, Wrench, X } from "lucide-react";
+import { Plus, Search, SearchX, Wrench, X } from "lucide-react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useMemo, useState } from "react";
-import { ChipsFiltro as Chips, type OpcaoChip } from "@/components/chips-filtro";
+import { ChipsFiltro as Chips } from "@/components/chips-filtro";
 import { CarregandoLista, ErroAoCarregar } from "@/components/estados";
-import { IconeTipo } from "@/components/icone-tipo";
-import { StatusBadge } from "@/components/status-badge";
-import { Badge } from "@/components/ui/badge";
+import { CartaoEquipamento } from "@/components/equipamento/cartao-equipamento";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty";
 import { Field, FieldLabel } from "@/components/ui/field";
 import { InputGroup, InputGroupAddon, InputGroupButton, InputGroupInput } from "@/components/ui/input-group";
 import { Switch } from "@/components/ui/switch";
-import { formatarData } from "@/lib/format";
 import { STATUS_EQUIPAMENTO, type StatusEquipamento } from "@/lib/status";
-import {
-  useClienteAutomatico,
-  useEquipamentos,
-  useLocais,
-  useTipos,
-  type EquipamentoResumo,
-} from "@/lib/tecnico/data";
+import { ordenarPorUrgencia } from "@/lib/tecnico/data/filtros";
+import { OPCOES_STATUS } from "@/lib/equipamentos/opcoes";
+import { useClienteAutomatico, useEquipamentos, useLocais, useTipos } from "@/lib/tecnico/data";
 
-const ORDEM_STATUS: Record<StatusEquipamento, number> = {
-  vencido: 0,
-  vence_em_breve: 1,
-  sem_registro: 2,
-  em_dia: 3,
-};
-
-/** Vencidos primeiro, depois os que vencem em breve, depois o resto (do mais urgente ao menos). */
-export function ordenarPorUrgencia(lista: EquipamentoResumo[]): EquipamentoResumo[] {
-  return [...lista].sort(
-    (a, b) =>
-      ORDEM_STATUS[a.status] - ORDEM_STATUS[b.status] ||
-      (a.proximaData ?? "9999").localeCompare(b.proximaData ?? "9999") ||
-      a.nome.localeCompare(b.nome, "pt-BR"),
-  );
-}
-
-const OPCOES_STATUS: OpcaoChip[] = [
-  { valor: "vencido", rotulo: "Vencidos" },
-  { valor: "vence_em_breve", rotulo: "Vencem em breve" },
-  { valor: "em_dia", rotulo: "Em dia" },
-  { valor: "sem_registro", rotulo: "Sem registro" },
-];
 
 export function ListaEquipamentos() {
   const [busca, setBusca] = useState("");
@@ -208,31 +177,7 @@ export function ListaEquipamentos() {
           <ul className="flex flex-col gap-3">
             {lista.map((e) => (
               <li key={e.id}>
-                <Link href={`/tecnico/equipamentos/${e.id}`} className="block rounded-xl">
-                  <Card className="transition-colors hover:bg-muted/50">
-                    <CardContent className="flex items-center gap-3">
-                      <span className="flex size-12 shrink-0 items-center justify-center rounded-xl bg-accent text-primary">
-                        <IconeTipo nome={e.tipoIcone} className="size-7" />
-                      </span>
-                      <div className="flex min-w-0 flex-1 flex-col gap-1.5">
-                        <p className="flex flex-wrap items-center gap-2 text-lg leading-tight font-semibold">
-                          {e.nome}
-                          {e.arquivado && <Badge variant="secondary">Arquivado</Badge>}
-                        </p>
-                        <p className="text-muted-foreground">
-                          {e.localNome} · {e.tipoNome}
-                        </p>
-                        <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
-                          <StatusBadge status={e.status} proximaData={e.proximaData} />
-                          <span className="text-muted-foreground">
-                            {e.ultimoServicoEm ? `Último serviço: ${formatarData(e.ultimoServicoEm)}` : "Nenhum serviço registrado"}
-                          </span>
-                        </div>
-                      </div>
-                      <ChevronRight className="size-6 shrink-0 text-muted-foreground" aria-hidden />
-                    </CardContent>
-                  </Card>
-                </Link>
+                <CartaoEquipamento equipamento={e} href={`/tecnico/equipamentos/${e.id}`} />
               </li>
             ))}
           </ul>

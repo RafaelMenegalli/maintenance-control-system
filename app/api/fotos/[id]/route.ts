@@ -3,8 +3,8 @@ import { db } from "@/db";
 import { equipamentos, fotos, locais, servicos } from "@/db/schema";
 import { idValido } from "@/lib/api";
 import { escopoCliente, getSessao } from "@/lib/auth/permissoes";
-import { gerarMiniatura } from "@/lib/fotos/processar";
-import { armazenamento, chaveFoto, chaveMiniatura } from "@/lib/storage";
+import { garantirMiniatura } from "@/lib/fotos/miniatura";
+import { armazenamento, chaveFoto } from "@/lib/storage";
 
 export const dynamic = "force-dynamic";
 
@@ -44,12 +44,8 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
   let chave = chaveFoto(foto.servicoId, id);
 
   if (miniatura) {
-    const chaveMini = chaveMiniatura(foto.servicoId, id);
-    if (!(await armazenamento.existe(chaveMini))) {
-      const original = await armazenamento.ler(chave);
-      if (!original) return naoEncontrada();
-      await armazenamento.salvar(chaveMini, await gerarMiniatura(original));
-    }
+    const chaveMini = await garantirMiniatura(foto.servicoId, id);
+    if (!chaveMini) return naoEncontrada();
     chave = chaveMini;
   }
 

@@ -29,9 +29,7 @@ export default async function LayoutPortal({ children }: { children: React.React
       {admin && (
         <div className="border-b-2 border-vence-em-breve-border bg-vence-em-breve text-vence-em-breve-foreground">
           <div className="mx-auto flex w-full max-w-5xl flex-wrap items-center gap-3 px-4 py-2">
-            <p className="min-w-0 flex-1 font-medium">
-              Você está vendo o portal como a empresa enxerga.
-            </p>
+            <p className="min-w-[14rem] flex-1 font-medium">Você está vendo como a empresa enxerga.</p>
             <Button asChild variant="outline" size="sm" className="bg-background">
               <Link href="/tecnico">
                 <ArrowLeft aria-hidden />
@@ -48,7 +46,7 @@ export default async function LayoutPortal({ children }: { children: React.React
             <Building2 className="size-5" aria-hidden />
           </span>
           <div className="min-w-0 flex-1">
-            <p className="truncate text-lg leading-tight font-bold">{cliente?.nome ?? "Sua empresa"}</p>
+            <p className="line-clamp-2 text-lg leading-tight font-bold">{cliente?.nome ?? "Sua empresa"}</p>
             <p className="truncate text-sm text-muted-foreground">Manutenções</p>
           </div>
           <BotaoSair size="sm" />

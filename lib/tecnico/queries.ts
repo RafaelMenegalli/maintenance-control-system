@@ -30,7 +30,8 @@ const ultimoServico = db
   .orderBy(servicos.equipamentoId, desc(servicos.data), desc(servicos.criadoEm))
   .as("ultimo_servico");
 
-function baseResumo() {
+/** Exportada também para o portal (lib/portal/queries.ts), que SEMPRE acrescenta o filtro de cliente. */
+export function baseResumo() {
   return db
     .select({
       id: equipamentos.id,
@@ -54,7 +55,7 @@ function baseResumo() {
 
 type LinhaResumo = Awaited<ReturnType<typeof baseResumo>>[number];
 
-function paraResumo({ arquivadoEm, ...r }: LinhaResumo) {
+export function paraResumo({ arquivadoEm, ...r }: LinhaResumo) {
   return { ...r, arquivado: arquivadoEm !== null };
 }
 

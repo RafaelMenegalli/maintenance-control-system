@@ -1,20 +1,30 @@
 import type { Metadata } from "next";
-import { CalendarClock, ShieldAlert, Wrench } from "lucide-react";
-import { TelaVazia } from "@/components/tela-vazia";
+import { FileText, ShieldAlert } from "lucide-react";
+import Link from "next/link";
+import { CartoesResumo } from "@/components/painel/cartoes-resumo";
+import { ProximasManutencoes } from "@/components/painel/proximas-manutencoes";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
+import { escopoCliente } from "@/lib/auth/permissoes";
+import { listarEquipamentosDoCliente } from "@/lib/portal/queries";
+import { contarSituacoes, proximasManutencoes } from "@/lib/tecnico/data/filtros";
 
-export const metadata: Metadata = { title: "Equipamentos" };
+export const metadata: Metadata = { title: "Início" };
 
-export default async function PaginaPortalEquipamentos({
+export default async function PaginaPortalInicio({
   searchParams,
 }: {
   searchParams: Promise<{ aviso?: string }>;
 }) {
   const { aviso } = await searchParams;
 
+  // Sempre filtrado pelo cliente da sessão.
+  const escopo = await escopoCliente();
+  const equipamentos = await listarEquipamentosDoCliente(escopo);
+
   return (
-    <div className="flex flex-col gap-4">
-      <h1 className="text-xl font-bold">Equipamentos</h1>
+    <div className="flex flex-col gap-6">
+      <h1 className="text-2xl font-bold">Início</h1>
 
       {aviso === "sem-acesso" && (
         <Alert variant="destructive">
@@ -26,12 +36,22 @@ export default async function PaginaPortalEquipamentos({
         </Alert>
       )}
 
-      <TelaVazia
-        icone={Wrench}
-        titulo="Equipamentos da sua empresa"
-        descricao="Aqui você vai ver todos os equipamentos, o status de cada um e o histórico de manutenções com fotos. Esta tela será liberada nas próximas etapas."
-        acao={{ rotulo: "Ver próximas manutenções", href: "/portal/proximas", icone: CalendarClock }}
+      <CartoesResumo
+        contagem={contarSituacoes(equipamentos)}
+        hrefDaSituacao={(status) => `/portal/equipamentos?situacao=${status}`}
       />
+
+      <ProximasManutencoes
+        equipamentos={proximasManutencoes(equipamentos)}
+        hrefDoEquipamento={(id) => `/portal/equipamentos/${id}`}
+      />
+
+      <Button asChild size="lg" variant="outline" className="w-full sm:w-auto sm:self-start">
+        <Link href="/portal/relatorios">
+          <FileText aria-hidden />
+          Gerar relatório em PDF
+        </Link>
+      </Button>
     </div>
   );
 }

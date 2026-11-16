@@ -1,16 +1,15 @@
 "use client";
 
-import { ChevronRight, CircleAlert, CircleDashed, ClipboardList, Clock } from "lucide-react";
+import { ChevronRight, ClipboardList } from "lucide-react";
 import Link from "next/link";
 import { useMemo, useState, useSyncExternalStore } from "react";
 import { ChipsFiltro } from "@/components/chips-filtro";
 import { CarregandoLista, ErroAoCarregar } from "@/components/estados";
-import { IconeTipo } from "@/components/icone-tipo";
+import { CartoesResumo } from "@/components/painel/cartoes-resumo";
+import { ProximasManutencoes } from "@/components/painel/proximas-manutencoes";
 import { BadgeTipoServico } from "@/components/servico/tipo-servico";
-import { StatusBadge } from "@/components/status-badge";
 import { Button } from "@/components/ui/button";
-import { formatarData, formatarNumero } from "@/lib/format";
-import type { StatusEquipamento } from "@/lib/status";
+import { formatarData } from "@/lib/format";
 import {
   useClienteAutomatico,
   useEquipamentos,
@@ -18,7 +17,7 @@ import {
   useServicosRecentes,
   useTipos,
 } from "@/lib/tecnico/data";
-import { cn } from "@/lib/utils";
+import { contarSituacoes, proximasManutencoes } from "@/lib/tecnico/data/filtros";
 
 /** Hora local do aparelho; `null` no servidor (evita diferença entre servidor e navegador). */
 function useHora(): number | null {
@@ -36,17 +35,6 @@ function saudacao(hora: number | null): string {
   return "Boa noite";
 }
 
-const CARTOES: {
-  status: Extract<StatusEquipamento, "vencido" | "vence_em_breve" | "sem_registro">;
-  titulo: string;
-  classes: string;
-  Icone: typeof CircleAlert;
-}[] = [
-  { status: "vencido", titulo: "Vencidos", classes: "border-vencido-border bg-vencido text-vencido-foreground", Icone: CircleAlert },
-  { status: "vence_em_breve", titulo: "Vencem em até 15 dias", classes: "border-vence-em-breve-border bg-vence-em-breve text-vence-em-breve-foreground", Icone: Clock },
-  { status: "sem_registro", titulo: "Sem registro", classes: "border-sem-registro-border bg-sem-registro text-sem-registro-foreground", Icone: CircleDashed },
-];
-
 export function Painel({ primeiroNome }: { primeiroNome: string }) {
   const hora = useHora();
   const [tipoId, setTipoId] = useState<string>();
@@ -59,23 +47,10 @@ export function Painel({ primeiroNome }: { primeiroNome: string }) {
   const { dados: ultimos } = useServicosRecentes(5);
   const { precisaEscolher } = useClienteAutomatico();
 
-  const contagem = useMemo(() => {
-    const c = { vencido: 0, vence_em_breve: 0, sem_registro: 0 };
-    for (const e of equipamentos ?? []) {
-      if (e.status in c) c[e.status as keyof typeof c] += 1;
-    }
-    return c;
-  }, [equipamentos]);
+  const contagem = useMemo(() => (equipamentos ? contarSituacoes(equipamentos) : undefined), [equipamentos]);
 
   // As 10 manutenções mais urgentes: quem tem data de próxima manutenção, da mais antiga para a mais nova.
-  const proximas = useMemo(
-    () =>
-      (equipamentos ?? [])
-        .filter((e) => e.proximaData)
-        .sort((a, b) => a.proximaData!.localeCompare(b.proximaData!) || a.nome.localeCompare(b.nome, "pt-BR"))
-        .slice(0, 10),
-    [equipamentos],
-  );
+  const proximas = useMemo(() => proximasManutencoes(equipamentos ?? []), [equipamentos]);
 
   const query = (status: string) => {
     const p = new URLSearchParams({ situacao: status });
@@ -98,25 +73,7 @@ export function Painel({ primeiroNome }: { primeiroNome: string }) {
         </Button>
       </div>
 
-      {/* Cartões com os números */}
-      <section aria-label="Resumo" className="grid gap-3 sm:grid-cols-3">
-        {CARTOES.map(({ status, titulo, classes, Icone }) => (
-          <Link
-            key={status}
-            href={query(status)}
-            className={cn("flex items-center gap-4 rounded-xl border-2 p-4 transition-opacity hover:opacity-90 sm:flex-col sm:items-start sm:gap-2", classes)}
-          >
-            <Icone className="size-8 shrink-0" aria-hidden />
-            <span className="flex flex-1 items-center justify-between gap-3 sm:w-full sm:flex-col sm:items-start sm:gap-0">
-              <span className="text-lg leading-tight font-semibold">{titulo}</span>
-              <span className="text-4xl leading-none font-bold" aria-label={`${contagem[status]} equipamentos`}>
-                {equipamentos ? formatarNumero(contagem[status], 0) : "…"}
-              </span>
-            </span>
-            <ChevronRight className="size-6 shrink-0 sm:hidden" aria-hidden />
-          </Link>
-        ))}
-      </section>
+      <CartoesResumo contagem={contagem} hrefDaSituacao={query} />
 
       {/* Filtros */}
       <section aria-label="Filtros" className="flex flex-col gap-4">
@@ -136,40 +93,8 @@ export function Painel({ primeiroNome }: { primeiroNome: string }) {
 
       {!equipamentos && (erro ? <ErroAoCarregar mensagem={erro} aoTentar={recarregar} /> : <CarregandoLista linhas={3} />)}
 
-      {/* Próximas manutenções */}
       {equipamentos && (
-        <section aria-labelledby="titulo-proximas" className="flex flex-col gap-3">
-          <h2 id="titulo-proximas" className="text-xl font-bold">
-            Próximas manutenções
-          </h2>
-          {proximas.length === 0 ? (
-            <p className="rounded-xl border-2 border-dashed p-4 text-muted-foreground">
-              Nenhuma manutenção agendada ainda. Registre um serviço para o sistema calcular a próxima data.
-            </p>
-          ) : (
-            <ul className="flex flex-col gap-3">
-              {proximas.map((e) => (
-                <li key={e.id}>
-                  <Link href={`/tecnico/equipamentos/${e.id}`} className="flex items-center gap-3 rounded-xl border-2 bg-card p-3 hover:bg-muted/50">
-                    <span className="flex size-12 shrink-0 items-center justify-center rounded-xl bg-accent text-primary">
-                      <IconeTipo nome={e.tipoIcone} className="size-7" />
-                    </span>
-                    <span className="flex min-w-0 flex-1 flex-col gap-1">
-                      <span className="text-lg leading-tight font-semibold">{e.nome}</span>
-                      <span className="text-muted-foreground">
-                        {e.localNome} · {formatarData(e.proximaData)}
-                      </span>
-                      <span>
-                        <StatusBadge status={e.status} proximaData={e.proximaData} />
-                      </span>
-                    </span>
-                    <ChevronRight className="size-6 shrink-0 text-muted-foreground" aria-hidden />
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          )}
-        </section>
+        <ProximasManutencoes equipamentos={proximas} hrefDoEquipamento={(id) => `/tecnico/equipamentos/${id}`} />
       )}
 
       {/* Últimos serviços */}

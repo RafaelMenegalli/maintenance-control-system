@@ -1,18 +1,37 @@
 import type { Metadata } from "next";
-import { FileText, Wrench } from "lucide-react";
-import { TelaVazia } from "@/components/tela-vazia";
+import { FormularioRelatorio } from "@/components/relatorios/formulario-relatorio";
+import { escopoCliente } from "@/lib/auth/permissoes";
+import { listarEquipamentosDoCliente, listarOpcoesDoCliente } from "@/lib/portal/queries";
 
 export const metadata: Metadata = { title: "Relatórios" };
 
-export default function PaginaPortalRelatorios() {
+export default async function PaginaPortalRelatorios() {
+  // Sempre filtrado pelo cliente da sessão: só aparecem locais, tipos e equipamentos da própria empresa.
+  const escopo = await escopoCliente();
+  const [opcoes, equipamentos] = await Promise.all([
+    listarOpcoesDoCliente(escopo),
+    listarEquipamentosDoCliente(escopo),
+  ]);
+
   return (
     <div className="flex flex-col gap-4">
       <h1 className="text-xl font-bold">Relatórios</h1>
-      <TelaVazia
-        icone={FileText}
-        titulo="Relatórios em PDF"
-        descricao="Aqui você vai baixar o relatório dos serviços realizados na sua empresa, escolhendo o período. Esta tela será liberada nas próximas etapas."
-        acao={{ rotulo: "Ver equipamentos", href: "/portal", icone: Wrench }}
+      <p className="text-lg text-muted-foreground">
+        Escolha o período e baixe o relatório dos serviços realizados na sua empresa, em PDF.
+      </p>
+      <FormularioRelatorio
+        opcoes={{
+          clienteFixoId: escopo.clienteId,
+          locais: opcoes.locais,
+          tipos: opcoes.tipos,
+          equipamentos: equipamentos.map((e) => ({
+            id: e.id,
+            nome: e.nome,
+            localId: e.localId,
+            tipoId: e.tipoId,
+            clienteId: e.clienteId,
+          })),
+        }}
       />
     </div>
   );

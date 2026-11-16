@@ -4,6 +4,7 @@ import {
   FileText,
   Home,
   KeyRound,
+  Lock,
   QrCode,
   ScanLine,
   Settings2,
@@ -27,6 +28,7 @@ export const ITENS_MAIS: ItemNavegacao[] = [
   { href: "/tecnico/etiquetas", rotulo: "Etiquetas QR", icone: QrCode },
   { href: "/tecnico/relatorios", rotulo: "Relatórios", icone: FileText },
   { href: "/tecnico/acessos", rotulo: "Acessos", icone: KeyRound },
+  { href: "/tecnico/senha", rotulo: "Alterar minha senha", icone: Lock },
 ];
 
 export const ITEM_REGISTRAR_SERVICO: ItemNavegacao = {

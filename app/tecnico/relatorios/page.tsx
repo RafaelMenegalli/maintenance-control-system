@@ -1,19 +1,37 @@
 import type { Metadata } from "next";
-import { FileText, Wrench } from "lucide-react";
 import { Tela } from "@/components/tecnico/tela";
-import { TelaVazia } from "@/components/tela-vazia";
+import { FormularioRelatorio, type OpcoesRelatorio } from "@/components/relatorios/formulario-relatorio";
+import { exigirAdmin } from "@/lib/auth/permissoes";
+import { listarClientesAdmin, listarEquipamentosAdmin, listarTiposAdmin } from "@/lib/tecnico/queries";
 
 export const metadata: Metadata = { title: "Relatórios" };
 
-export default function PaginaRelatorios() {
+export default async function PaginaRelatorios() {
+  await exigirAdmin();
+  const [clientes, tipos, equipamentos] = await Promise.all([
+    listarClientesAdmin(),
+    listarTiposAdmin(),
+    listarEquipamentosAdmin(),
+  ]);
+
+  const opcoes: OpcoesRelatorio = {
+    // Com 1 cliente só, a tela não pergunta a empresa (o servidor usa o único cliente).
+    clientes: clientes.length > 1 ? clientes.map((c) => ({ id: c.id, nome: c.nome })) : undefined,
+    locais: clientes.flatMap((c) => c.locais.map((l) => ({ id: l.id, nome: l.nome, clienteId: c.id }))),
+    tipos: tipos.map((t) => ({ id: t.id, nome: t.nome })),
+    equipamentos: equipamentos
+      .filter((e) => !e.arquivado)
+      .map((e) => ({ id: e.id, nome: e.nome, localId: e.localId, tipoId: e.tipoId, clienteId: e.clienteId })),
+  };
+
   return (
     <Tela titulo="Relatórios">
-      <TelaVazia
-        icone={FileText}
-        titulo="Relatórios em PDF"
-        descricao="Aqui você vai gerar o relatório dos serviços realizados, filtrando por período, local, tipo de equipamento ou equipamento, para entregar à empresa. Esta tela será liberada nas próximas etapas."
-        acao={{ rotulo: "Ver equipamentos", href: "/tecnico/equipamentos", icone: Wrench }}
-      />
+      <div className="flex flex-col gap-4">
+        <p className="text-lg text-muted-foreground">
+          Escolha o período e gere o relatório em PDF para entregar à empresa.
+        </p>
+        <FormularioRelatorio opcoes={opcoes} />
+      </div>
     </Tela>
   );
 }
