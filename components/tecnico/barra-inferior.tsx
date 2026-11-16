@@ -26,6 +26,9 @@ export function BarraInferior() {
   const pathname = usePathname();
   const [maisAberto, setMaisAberto] = useState(false);
   const maisAtivo = ITENS_MAIS.some((i) => rotaAtiva(pathname, i.href));
+  // No formulário de serviço os botões Voltar/Continuar ocupam o rodapé: a barra some.
+  const emFormularioDeServico = pathname.endsWith("/novo-servico") || /\/servicos\/[^/]+\/editar$/.test(pathname);
+  if (emFormularioDeServico) return null;
 
   return (
     <>

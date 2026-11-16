@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { cnpjValido, mascararCnpj } from "@/lib/format";
 import { atributosSchema, camposSchema } from "./campo";
-import { checklistSchema } from "./checklist";
+import { checklistSchema, respostasChecklistSchema } from "./checklist";
 import { NOMES_ICONES } from "./icones";
 
 /**
@@ -69,3 +69,49 @@ export const equipamentoInputSchema = z.object({
   observacoes: textoOpcional,
 });
 export type EquipamentoInput = z.input<typeof equipamentoInputSchema>;
+
+// ───────────────────────── Serviços ─────────────────────────
+
+export const TIPOS_SERVICO = ["instalacao", "preventiva", "corretiva", "limpeza", "inspecao"] as const;
+export type TipoServicoValor = (typeof TIPOS_SERVICO)[number];
+
+export const ROTULOS_TIPO_SERVICO: Record<TipoServicoValor, string> = {
+  instalacao: "Instalação",
+  preventiva: "Preventiva",
+  corretiva: "Corretiva",
+  limpeza: "Limpeza",
+  inspecao: "Inspeção/teste",
+};
+
+const dataIso = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Informe uma data válida");
+
+const fotoDoServicoSchema = z.object({
+  id: z.uuid(),
+  momento: z.enum(["antes", "depois"]),
+});
+
+const camposComunsServico = {
+  tipo: z.enum(TIPOS_SERVICO, { error: "Escolha o tipo de serviço" }),
+  data: dataIso,
+  descricao: z.string().trim().min(1, "Escreva o que foi feito").max(5000, "A descrição está longa demais"),
+  checklist: respostasChecklistSchema,
+  proximaData: dataIso.nullish(),
+};
+
+/** Serviço novo. `id` e os ids das fotos são UUIDs gerados no navegador (o registro pode nascer offline). */
+export const servicoInputSchema = z.object({
+  id: z.uuid(),
+  equipamentoId: z.uuid(),
+  ...camposComunsServico,
+  /** Fotos já enviadas (POST /api/fotos) que pertencem a este serviço. */
+  fotos: z.array(fotoDoServicoSchema).max(40).default([]),
+});
+export type ServicoInput = z.input<typeof servicoInputSchema>;
+
+/** Edição de um serviço existente. */
+export const servicoEdicaoSchema = z.object({
+  ...camposComunsServico,
+  fotosNovas: z.array(fotoDoServicoSchema).max(40).default([]),
+  fotosRemovidas: z.array(z.uuid()).max(40).default([]),
+});
+export type ServicoEdicaoInput = z.input<typeof servicoEdicaoSchema>;

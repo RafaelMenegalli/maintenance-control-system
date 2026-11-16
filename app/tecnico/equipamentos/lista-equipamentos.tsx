@@ -2,7 +2,9 @@
 
 import { ChevronRight, Plus, Search, SearchX, Wrench, X } from "lucide-react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { useMemo, useState } from "react";
+import { ChipsFiltro as Chips, type OpcaoChip } from "@/components/chips-filtro";
 import { CarregandoLista, ErroAoCarregar } from "@/components/estados";
 import { IconeTipo } from "@/components/icone-tipo";
 import { StatusBadge } from "@/components/status-badge";
@@ -13,9 +15,8 @@ import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTi
 import { Field, FieldLabel } from "@/components/ui/field";
 import { InputGroup, InputGroupAddon, InputGroupButton, InputGroupInput } from "@/components/ui/input-group";
 import { Switch } from "@/components/ui/switch";
-import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { formatarData } from "@/lib/format";
-import type { StatusEquipamento } from "@/lib/status";
+import { STATUS_EQUIPAMENTO, type StatusEquipamento } from "@/lib/status";
 import {
   useClienteAutomatico,
   useEquipamentos,
@@ -41,53 +42,6 @@ export function ordenarPorUrgencia(lista: EquipamentoResumo[]): EquipamentoResum
   );
 }
 
-type OpcaoChip = { valor: string; rotulo: string };
-
-function Chips({
-  rotulo,
-  opcoes,
-  valor,
-  aoMudar,
-}: {
-  rotulo: string;
-  opcoes: OpcaoChip[];
-  valor: string | undefined;
-  aoMudar: (valor: string | undefined) => void;
-}) {
-  return (
-    <div className="flex flex-col gap-2">
-      <span id={`chips-${rotulo}`} className="font-semibold">
-        {rotulo}
-      </span>
-      <ToggleGroup
-        type="single"
-        variant="outline"
-        aria-labelledby={`chips-${rotulo}`}
-        value={valor ?? "todos"}
-        // Tocar de novo no chip ativo não pode deixar a seleção vazia: volta para "Todos".
-        onValueChange={(v) => aoMudar(!v || v === "todos" ? undefined : v)}
-        className="flex w-full flex-wrap justify-start"
-      >
-        <ToggleGroupItem
-          value="todos"
-          className="rounded-full data-[state=on]:bg-primary data-[state=on]:text-primary-foreground"
-        >
-          Todos
-        </ToggleGroupItem>
-        {opcoes.map((o) => (
-          <ToggleGroupItem
-            key={o.valor}
-            value={o.valor}
-            className="rounded-full data-[state=on]:bg-primary data-[state=on]:text-primary-foreground"
-          >
-            {o.rotulo}
-          </ToggleGroupItem>
-        ))}
-      </ToggleGroup>
-    </div>
-  );
-}
-
 const OPCOES_STATUS: OpcaoChip[] = [
   { valor: "vencido", rotulo: "Vencidos" },
   { valor: "vence_em_breve", rotulo: "Vencem em breve" },
@@ -97,9 +51,14 @@ const OPCOES_STATUS: OpcaoChip[] = [
 
 export function ListaEquipamentos() {
   const [busca, setBusca] = useState("");
-  const [tipoId, setTipoId] = useState<string>();
-  const [localId, setLocalId] = useState<string>();
-  const [status, setStatus] = useState<StatusEquipamento>();
+  // Os cartões do painel abrem esta lista já filtrada: ?situacao=vencido&tipo=...&local=...
+  const params = useSearchParams();
+  const [tipoId, setTipoId] = useState<string | undefined>(params.get("tipo") ?? undefined);
+  const [localId, setLocalId] = useState<string | undefined>(params.get("local") ?? undefined);
+  const [status, setStatus] = useState<StatusEquipamento | undefined>(() => {
+    const s = params.get("situacao");
+    return (STATUS_EQUIPAMENTO as readonly string[]).includes(s ?? "") ? (s as StatusEquipamento) : undefined;
+  });
   const [arquivados, setArquivados] = useState(false);
 
   const filtros = useMemo(

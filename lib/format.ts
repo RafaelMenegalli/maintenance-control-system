@@ -1,6 +1,5 @@
 import { format, isValid, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { diasAteVencer } from "@/lib/status";
 
 /**
  * Formatação centralizada. Toda tela deve formatar datas e números por aqui:
@@ -51,18 +50,8 @@ function plural(n: number, singular: string, pluralTxt: string): string {
   return `${n} ${n === 1 ? singular : pluralTxt}`;
 }
 
-/**
- * Texto relativo ao vencimento:
- * "vence hoje", "vence amanhã", "vence em 5 dias", "venceu ontem", "venceu há 3 dias".
- */
-export function textoVencimento(proximaData: string | Date, hoje: Date = new Date()): string {
-  const dias = diasAteVencer(proximaData, hoje);
-  if (dias === 0) return "vence hoje";
-  if (dias === 1) return "vence amanhã";
-  if (dias > 1) return `vence em ${plural(dias, "dia", "dias")}`;
-  if (dias === -1) return "venceu ontem";
-  return `venceu há ${plural(Math.abs(dias), "dia", "dias")}`;
-}
+/** O texto relativo de vencimento mora em lib/status.ts (regra única); re-exportado aqui por conveniência. */
+export { textoVencimento } from "@/lib/status";
 
 /** "5 dias", "1 dia" */
 export function formatarDias(dias: number): string {

@@ -9,10 +9,11 @@ import { DialogoResponsivo } from "@/components/dialogo-responsivo";
 import { CarregandoLista, ErroAoCarregar } from "@/components/estados";
 import { IconeTipo } from "@/components/icone-tipo";
 import { QrCode, urlDoEquipamento } from "@/components/qr-code";
+import { LinhaDoTempo } from "@/components/servico/linha-do-tempo";
 import { StatusBadge } from "@/components/status-badge";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -99,7 +100,7 @@ export function DetalheEquipamento({ id }: { id: string }) {
           )}
 
           <Button asChild size="lg" className="w-full">
-            <Link href={`/tecnico/servicos/novo?equipamento=${encodeURIComponent(e.id)}`}>
+            <Link href={`/tecnico/equipamentos/${e.id}/novo-servico`}>
               <ClipboardList aria-hidden />
               Registrar serviço
             </Link>
@@ -159,18 +160,14 @@ export function DetalheEquipamento({ id }: { id: string }) {
         </CardContent>
       </Card>
 
-      {/* Área reservada para a linha do tempo de serviços (etapa 3). */}
-      <Card data-slot="linha-do-tempo">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-lg">
-            <History className="size-5" aria-hidden />
-            Histórico de serviços
-          </CardTitle>
-          <CardDescription>
-            Aqui vai aparecer a linha do tempo com todos os serviços, checklists e fotos deste equipamento.
-          </CardDescription>
-        </CardHeader>
-      </Card>
+      {/* Linha do tempo dos serviços */}
+      <section data-slot="linha-do-tempo" aria-labelledby="titulo-historico" className="flex flex-col gap-3">
+        <h2 id="titulo-historico" className="flex items-center gap-2 text-lg font-bold">
+          <History className="size-5" aria-hidden />
+          Histórico de serviços
+        </h2>
+        <LinhaDoTempo equipamentoId={e.id} />
+      </section>
 
       {/* QR Code */}
       <DialogoResponsivo

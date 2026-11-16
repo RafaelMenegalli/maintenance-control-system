@@ -3,11 +3,16 @@ import type {
   ClienteDTO,
   EquipamentoDetalhe,
   EquipamentoResumo,
+  EdicaoServico,
   FiltrosEquipamentos,
+  FotoParaEnviar,
   LocalDTO,
+  NovoServico,
   OpcoesServicos,
   PainelTecnico,
+  ProgressoEnvio,
   ServicoDetalhe,
+  ServicoRecente,
   TipoEquipamentoDetalhe,
   TipoEquipamentoDTO,
 } from "./types";
@@ -35,6 +40,8 @@ export interface RepositorioTecnico {
   obterTipo(id: string): Promise<TipoEquipamentoDetalhe | null>;
   listarLocais(): Promise<LocalDTO[]>;
   listarClientes(): Promise<ClienteDTO[]>;
+  /** Serviços mais recentes de todos os equipamentos (mais novo primeiro). */
+  listarServicosRecentes(limite?: number): Promise<ServicoRecente[]>;
   /** Vencidos, que vencem em até 15 dias e sem registro (para o painel da tela inicial). */
   obterPainel(): Promise<PainelTecnico>;
 
@@ -51,4 +58,27 @@ export interface RepositorioTecnico {
   excluirTipo(id: string): Promise<void>;
   salvarEquipamento(dados: EquipamentoInput): Promise<{ id: string }>;
   arquivarEquipamento(id: string, arquivar: boolean): Promise<void>;
+
+  // ── Serviços ──
+  /**
+   * Salva um serviço novo. O `id` do serviço e os das fotos são UUIDs gerados no navegador.
+   * Ordem do envio: primeiro as fotos (já comprimidas), depois o serviço — ambos IDEMPOTENTES,
+   * então repetir a chamada (duplo toque, nova tentativa) nunca duplica nada.
+   * Na etapa 5 (offline) isto passa a gravar na fila local e sincronizar depois.
+   */
+  salvarServico(
+    dados: NovoServico,
+    fotos: FotoParaEnviar[],
+    aoProgredir?: (progresso: ProgressoEnvio) => void,
+  ): Promise<{ id: string }>;
+  /** Edita um serviço (só online): troca dados, envia fotos novas e remove as indicadas. */
+  editarServico(
+    id: string,
+    dados: EdicaoServico,
+    fotosNovas: FotoParaEnviar[],
+    fotosRemovidas: string[],
+    aoProgredir?: (progresso: ProgressoEnvio) => void,
+  ): Promise<void>;
+  /** Exclui o serviço e as fotos dele (só online). */
+  excluirServico(id: string): Promise<void>;
 }

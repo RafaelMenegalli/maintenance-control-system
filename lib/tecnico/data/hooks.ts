@@ -13,6 +13,7 @@ import type {
   OpcoesServicos,
   PainelTecnico,
   ServicoDetalhe,
+  ServicoRecente,
   TipoEquipamentoDetalhe,
   TipoEquipamentoDTO,
 } from "./types";
@@ -137,4 +138,9 @@ export function useClienteAutomatico(): {
     clienteUnico: clientes.length === 1 ? clientes[0] : null,
     precisaEscolher: clientes.length > 1,
   };
+}
+
+/** Últimos serviços registrados em qualquer equipamento (mais novo primeiro). */
+export function useServicosRecentes(limite = 10): Consulta<ServicoRecente[]> {
+  return useConsulta(() => repositorio.listarServicosRecentes(limite), `recentes:${limite}`);
 }

@@ -90,6 +90,7 @@ export type ServicoDetalhe = {
   checklist: RespostaChecklist[];
   proximaData: string | null;
   criadoPor: string | null;
+  criadoPorNome: string | null;
   criadoEm: string;
   fotos: FotoResumo[];
 };
@@ -113,3 +114,40 @@ export type PainelTecnico = {
   venceEmBreve: EquipamentoResumo[];
   semRegistro: EquipamentoResumo[];
 };
+
+/** Serviço resumido, com o equipamento (painel e "usados recentemente"). */
+export type ServicoRecente = {
+  id: string;
+  data: string;
+  tipo: TipoServico;
+  criadoEm: string;
+  equipamentoId: string;
+  equipamentoNome: string;
+  localNome: string;
+  tipoEquipamentoNome: string;
+  tipoEquipamentoIcone: string | null;
+  criadoPorNome: string | null;
+};
+
+/** Uma foto pronta para enviar (já comprimida no navegador). */
+export type FotoParaEnviar = {
+  /** UUID gerado no navegador quando a foto é escolhida. */
+  id: string;
+  momento: MomentoFoto;
+  arquivo: Blob;
+};
+
+/** Andamento do envio de um serviço: fotos primeiro, depois o serviço. */
+export type ProgressoEnvio = {
+  etapa: "fotos" | "servico";
+  /** Fotos já enviadas / total de fotos a enviar. */
+  fotosEnviadas: number;
+  totalFotos: number;
+  /** 0 a 100, considerando o envio de todas as fotos e do serviço. */
+  percentual: number;
+};
+
+/** Dados do serviço novo (sem as fotos, que vão à parte). Ver ServicoInput em lib/schemas/entidades.ts. */
+export type NovoServico = Omit<import("@/lib/schemas/entidades").ServicoInput, "fotos">;
+/** Dados editáveis de um serviço existente. */
+export type EdicaoServico = Omit<import("@/lib/schemas/entidades").ServicoEdicaoInput, "fotosNovas" | "fotosRemovidas">;

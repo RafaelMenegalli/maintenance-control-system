@@ -1,6 +1,6 @@
 import { asc, desc, eq, inArray, sql } from "drizzle-orm";
 import { db } from "@/db";
-import { clientes, equipamentos, fotos, locais, servicos, tiposEquipamento } from "@/db/schema";
+import { clientes, equipamentos, fotos, locais, servicos, tiposEquipamento, usuarios } from "@/db/schema";
 import type {
   ClienteDTO,
   EquipamentoDetalhe,
@@ -94,8 +94,9 @@ export async function obterEquipamentoAdmin(id: string) {
 
 export async function listarServicosAdmin(equipamentoId: string): Promise<ServicoDetalhe[]> {
   const linhas = await db
-    .select()
+    .select({ s: servicos, criadoPorNome: usuarios.name })
     .from(servicos)
+    .leftJoin(usuarios, eq(usuarios.id, servicos.criadoPor))
     .where(eq(servicos.equipamentoId, equipamentoId))
     .orderBy(desc(servicos.data), desc(servicos.criadoEm));
   if (linhas.length === 0) return [];
@@ -112,12 +113,12 @@ export async function listarServicosAdmin(equipamentoId: string): Promise<Servic
     .where(
       inArray(
         fotos.servicoId,
-        linhas.map((s) => s.id),
+        linhas.map(({ s }) => s.id),
       ),
     )
     .orderBy(asc(fotos.criadoEm));
 
-  return linhas.map((s) => ({
+  return linhas.map(({ s, criadoPorNome }) => ({
     id: s.id,
     equipamentoId: s.equipamentoId,
     tipo: s.tipo,
@@ -126,6 +127,7 @@ export async function listarServicosAdmin(equipamentoId: string): Promise<Servic
     checklist: s.checklist,
     proximaData: s.proximaData,
     criadoPor: s.criadoPor,
+    criadoPorNome,
     criadoEm: s.criadoEm.toISOString(),
     fotos: listaFotos
       .filter((f) => f.servicoId === s.id)
