@@ -16,7 +16,7 @@ import { cn } from "@/lib/utils";
 import { ITENS_MAIS, ITENS_PRINCIPAIS, rotaAtiva } from "./navegacao";
 
 const classesItem =
-  "flex min-h-16 flex-col items-center justify-center gap-1 px-1 text-xs font-semibold leading-tight tracking-tight";
+  "flex min-h-16 flex-col items-center justify-center gap-1 px-0.5 text-xs font-semibold leading-tight tracking-tight";
 
 /**
  * Barra inferior fixa do celular: 4 itens grandes (ícone + texto).
@@ -36,7 +36,8 @@ export function BarraInferior() {
         aria-label="Menu principal"
         className="fixed inset-x-0 bottom-0 z-40 border-t-2 bg-background pb-[env(safe-area-inset-bottom)] md:hidden print:hidden"
       >
-        <ul className="grid grid-cols-4">
+        {/* Colunas proporcionais ao texto: "Equipamentos" é bem mais longo que "Mais" e não pode vazar. */}
+        <ul className="grid grid-cols-[minmax(0,1fr)_minmax(0,1.6fr)_minmax(0,1.2fr)_minmax(0,0.8fr)]">
           {ITENS_PRINCIPAIS.map(({ href, rotulo, icone: Icone }) => {
             const ativo = rotaAtiva(pathname, href);
             return (
